@@ -7,11 +7,16 @@ const listingSchema = new Schema({
     required: true,
   },
   description: String,
+
   image: {
-    type: String,
-    default: "http://naturalbeauty83.blogspot.com/2014/12/natural-beauty.html",
-    set: (v) => v === "" ? "http://naturalbeauty83.blogspot.com/2014/12/natural-beauty.html" : v,
+    filename: String,
+    url: {
+      type: String,
+      default:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    },
   },
+
   price: Number,
   location: String,
   country: String,
