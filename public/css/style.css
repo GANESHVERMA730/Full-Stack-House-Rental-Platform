@@ -1,5 +1,12 @@
-body{
-   font-family: "Plus Jakarta Sans", sans-serif !important;
+body {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.container {
+  flex: 1;
 }
 
 /* Navbar */
@@ -61,18 +68,18 @@ body{
 }
 
 /* Cards */
-.card{
+.card {
   border: none !important;
   margin-bottom: 2rem;
 }
 
-.card-img-top{
+.card-img-top {
   border-radius: 1rem !important;
   width: 100%;
   object-fit: cover !important;
 }
 
-.card-body{
+.card-body {
   padding: 0 !important;
 }
 
@@ -80,16 +87,40 @@ body{
   font-weight: 400 !important;
 }
 
-.listing-link{
+.listing-link {
   text-decoration: none;
 }
 
 /* Card effect */
-.card-img-overlay{
+.card-img-overlay {
   opacity: 0;
 }
 
-.card-img-overlay:hover{
+.card-img-overlay:hover {
   opacity: 0.2;
   background-color: rgba(255, 255, 255, 0.653);
+}
+
+/* New page styling */
+.add-btn {
+  background-color: #fe424d !important;
+  border: none !important;
+  color: white !important;
+  transition: 0.1s ease-in-out !important;
+}
+
+.add-btn:hover {
+  background-color: #dc3545 !important;
+}
+
+/* Edit Page */
+.edit-btn{
+  background-color: #fe424d !important;
+  border: none !important;
+  color: white !important;
+  transition: 0.1s ease-in-out !important;
+}
+
+.edit-btn:hover {
+  background-color: #dc3545 !important;
 }
