@@ -124,3 +124,17 @@ body {
 .edit-btn:hover {
   background-color: #dc3545 !important;
 }
+
+/* Show page styling */
+.show-img{
+  height: 30vh;
+}
+
+.btns{
+  display: flex;
+}
+
+.show-card{
+  padding-left: 0;
+  padding-right: 0;
+}
