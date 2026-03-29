@@ -7,6 +7,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
+const { listingSchema } = require("./schema.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust"; //MongoDB URL define
 
@@ -34,6 +35,18 @@ app.use(express.static(path.join(__dirname, "/public")));
 app.get("/", (req, res) => {
   res.send("Hi, I am root");
 });
+
+// joi Validation function
+const validateListing = (req, res, next) => {
+  let {error} = listingSchema.validate(req.body);
+  if(error){
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(400, errMsg);
+  } else {
+    next();
+  }
+};
+
 // Inndex Route.
 app.get("/listings", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
@@ -54,10 +67,8 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 
 // Create Route
 app.post("/listings",
+  validateListing,
   wrapAsync(async (req, res, next) => {
-    if (!req.body.listing) {
-      throw new ExpressError(400, "Send Valid Data for Listings");
-    }
     // let {title, description, image, price, country, location} =req.body;
     // let listing = req.body.listing;
     const newListing = new Listing(req.body.listing);
@@ -75,10 +86,8 @@ app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
 
 //Upatae Route
 app.put("/listings/:id",
+  validateListing,
   wrapAsync(async (req, res) => {
-    if (!req.body.listing) {
-      throw new ExpressError(400, "Send Valid Data for Listings");
-    }
     let { id } = req.params;
     await Listing.findByIdAndUpdate(id, { ...req.body.listing });
     res.redirect(`/listings/${id}`);
@@ -113,7 +122,8 @@ app.use((req, res, next) => {
 // Error handling:
 app.use((err, req, res, next) => {
   let { statusCode = 500, message = "Error aa gya vosadi!!" } = err;
-  res.status(statusCode).send(message);
+  res.render("error.ejs", { message });
+  // res.status(statusCode).send(message);
 });
 
 
