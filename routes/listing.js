@@ -31,26 +31,38 @@ router.get("/new", (req, res) => {
 router.get("/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
   const listing = await Listing.findById(id).populate("reviews");
+  if(!listing){
+    req.flash("error", "Listing you requested for is not exist1");
+    return res.redirect("/listings");
+  }
   res.render("listings/show.ejs", { listing });
-}));
+})
+);
 
 // Create Route
-router.post("/",
-  validateListing,
-  wrapAsync(async (req, res, next) => {
-    // let {title, description, image, price, country, location} =req.body;
-    // let listing = req.body.listing;
-    const newListing = new Listing(req.body.listing);
-    await newListing.save();
-    res.redirect("/listings");
-  })
-);
+router.post("/", wrapAsync(async (req, res) => {
+
+  // agar empty hai → delete kar do
+  if (!req.body.listing.image.url) {
+    delete req.body.listing.image;
+  }
+
+  const newListing = new Listing(req.body.listing);
+  await newListing.save();
+
+  req.flash("success", "New Listing Created!");
+  res.redirect("/listings");
+}));
 
 // Edit Route
 router.get("/:id/edit", wrapAsync(async (req, res) => {
-  let { id } = req.params;
+  let { id } = req.params
   const listing = await Listing.findById(id);
-  res.render("/edit.ejs", { listing });
+  if (!listing) {
+    req.flash("error", "Listing not found!");
+    return res.redirect("/listings");
+  }
+  res.render("listings/edit", { listing });
 }));
 
 //Upatae Route
@@ -59,6 +71,7 @@ router.put("/:id",
   wrapAsync(async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+    req.flash("success", "Listing updated successfully!");
     res.redirect(`/listings/${id}`);
   }));
 
@@ -67,6 +80,7 @@ router.delete("/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
   let deletedListing = await Listing.findByIdAndDelete(id);
   console.log(deletedListing);
+  req.flash("success", "Listing Deleted!");
   res.redirect("/listings");
 }));
 
