@@ -28,14 +28,14 @@ module.exports.showListing = async (req, res) => {
 }
 
 module.exports.createListings = async (req, res) => {
+  let url = req.file.path;
+  let filename = req.file.filename;
+  // console.log(url, "..", filename);
 
-  // agar empty hai → delete kar do
-  if (!req.body.listing.image.url) {
-    delete req.body.listing.image;
-  }
   const newListing = new Listing(req.body.listing);
   // console.log(req.user);
   newListing.owner = req.user._id;
+  newListing.image = { url, filename };
   await newListing.save();
 
   req.flash("success", "New Listing Created!");
@@ -43,26 +43,34 @@ module.exports.createListings = async (req, res) => {
 };
 
 module.exports.renderEditForm = async (req, res) => {
-    let { id } = req.params
-    const listing = await Listing.findById(id);
-    if (!listing) {
-      req.flash("error", "Listing not found!");
-      return res.redirect("/listings");
-    }
-    res.render("listings/edit", { listing });
-  };
+  let { id } = req.params
+  const listing = await Listing.findById(id);
+  if (!listing) {
+    req.flash("error", "Listing not found!");
+    return res.redirect("/listings");
+  }
+  res.render("listings/edit", { listing });
+};
 
-  module.exports.updateListing = async (req, res) => {
-      let { id } = req.params;
-      await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-      req.flash("success", "Listing updated successfully!");
-      res.redirect(`/listings/${id}`);
-    };
+module.exports.updateListing = async (req, res) => {
+  let { id } = req.params;
+  let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
 
-    module.exports.destroyListing = async (req, res) => {
-    let { id } = req.params;
-    let deletedListing = await Listing.findByIdAndDelete(id);
-    console.log(deletedListing);
-    req.flash("success", "Listing Deleted!");
-    res.redirect("/listings");
-  };
+  if(typeof req.file !=="undefined") {
+  let url = req.file.path;
+  let filename = req.file.filename;
+  listing.image = { url, filename };
+  await listing.save();
+  }
+
+  req.flash("success", "Listing updated successfully!");
+  res.redirect(`/listings/${id}`);
+};
+
+module.exports.destroyListing = async (req, res) => {
+  let { id } = req.params;
+  let deletedListing = await Listing.findByIdAndDelete(id);
+  console.log(deletedListing);
+  req.flash("success", "Listing Deleted!");
+  res.redirect("/listings");
+};

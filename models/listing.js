@@ -8,14 +8,9 @@ const listingSchema = new Schema({
     required: true,
   },
   description: String,
-
   image: {
+    url: String,
     filename: String,
-    url: {
-      type: String,
-      default:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    },
   },
 
   price: Number,
@@ -27,15 +22,15 @@ const listingSchema = new Schema({
       ref: "Review",
     },
   ],
-  owner:{
+  owner: {
     type: Schema.Types.ObjectId,
     ref: "User",
   },
 });
 
-listingSchema.post("findOneAndDelete", async(listing) => {
-  if(listing){
-    await Review.deleteMany({ _id: {$in: listing.reviews}});
+listingSchema.post("findOneAndDelete", async (listing) => {
+  if (listing) {
+    await Review.deleteMany({ _id: { $in: listing.reviews } });
   }
 });
 
