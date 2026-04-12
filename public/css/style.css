@@ -125,6 +125,12 @@ body {
   background-color: #dc3545 !important;
 }
 
+.preview-img {
+  height: 150px;
+  width: 200px;
+  object-fit: cover;
+}
+
 /* Show page styling */
 .show-img{
   height: 30vh;

@@ -1,4 +1,5 @@
 const Listing = require("../models/listing");
+const axios = require("axios");
 
 module.exports.index = async (req, res) => {
   const allListings = await Listing.find({});
@@ -28,18 +29,48 @@ module.exports.showListing = async (req, res) => {
 }
 
 module.exports.createListings = async (req, res) => {
-  let url = req.file.path;
-  let filename = req.file.filename;
-  // console.log(url, "..", filename);
+  try {
+    const { location } = req.body.listing;
 
-  const newListing = new Listing(req.body.listing);
-  // console.log(req.user);
-  newListing.owner = req.user._id;
-  newListing.image = { url, filename };
-  await newListing.save();
+    const geoResponse = await axios.get(
+      "https://nominatim.openstreetmap.org/search",
+      {
+        params: {
+          q: location,
+          format: "json",
+          limit: 1,
+        },
+        headers: {
+          "User-Agent": "airbnb-project (bibekverma21@gmail.com)", // ✅ IMPORTANT
+        },
+      }
+    );
 
-  req.flash("success", "New Listing Created!");
-  res.redirect("/listings");
+    if (geoResponse.data.length === 0) {
+      req.flash("error", "Location not found");
+      return res.redirect("/listings/new");
+    }
+    const geoData = geoResponse.data[0];
+
+    let url = req.file.path;
+    let filename = req.file.filename;
+    const newListing = new Listing(req.body.listing);
+    newListing.owner = req.user._id;
+    newListing.image = { url, filename };
+
+    newListing.geometry = {
+      type: "Point",
+      coordinates: [geoData.lon, geoData.lat],
+    };
+    await newListing.save();
+
+    req.flash("success", "New Listing Created!");
+    res.redirect(`/listings/${newListing._id}`);
+  } catch (err) {
+    console.log(err);
+    req.flash("error", "Something went wrong");
+    res.redirect("/listings/new");
+  }
 };
 
 module.exports.renderEditForm = async (req, res) => {
@@ -49,24 +80,59 @@ module.exports.renderEditForm = async (req, res) => {
     req.flash("error", "Listing not found!");
     return res.redirect("/listings");
   }
-  res.render("listings/edit", { listing });
+
+  let originalImageUrl = listing.image.url;
+  originalImageUrl = originalImageUrl.replace("/upload", "/upload/w_250");
+  res.render("listings/edit.ejs", { listing, originalImageUrl });
 };
 
 module.exports.updateListing = async (req, res) => {
   let { id } = req.params;
-  let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+  const { location } = req.body.listing;
 
-  if(typeof req.file !=="undefined") {
-  let url = req.file.path;
-  let filename = req.file.filename;
-  listing.image = { url, filename };
-  await listing.save();
+  // Geocoding (for updated location)
+  const geoResponse = await axios.get(
+    "https://nominatim.openstreetmap.org/search",
+    {
+      params: {
+        q: location,
+        format: "json",
+        limit: 1,
+      },
+      headers: {
+        "User-Agent": "airbnb-app (bibekverma21@gmail.com)",
+      },
+    }
+  );
+
+  if (geoResponse.data.length === 0) {
+    req.flash("error", "Location not found");
+    return res.redirect(`/listings/${id}/edit`);
   }
 
+  const geoData = geoResponse.data[0];
+
+
+  let listing = await Listing.findByIdAndUpdate(
+    id,
+    { ...req.body.listing },
+    { new: true }
+  );
+
+  listing.geometry = {
+    type: "Point",
+    coordinates: [geoData.lon, geoData.lat],
+  };
+
+  if (typeof req.file !== "undefined") {
+    let url = req.file.path;
+    let filename = req.file.filename;
+    listing.image = { url, filename };
+  }
+  await listing.save();
   req.flash("success", "Listing updated successfully!");
   res.redirect(`/listings/${id}`);
 };
-
 module.exports.destroyListing = async (req, res) => {
   let { id } = req.params;
   let deletedListing = await Listing.findByIdAndDelete(id);

@@ -8,6 +8,7 @@ const listingSchema = new Schema({
     required: true,
   },
   description: String,
+
   image: {
     url: String,
     filename: String,
@@ -16,18 +17,30 @@ const listingSchema = new Schema({
   price: Number,
   location: String,
   country: String,
+
+  geometry: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+    },
+    coordinates: [Number], // [longitude, latitude]
+  },
+
   reviews: [
     {
       type: Schema.Types.ObjectId,
       ref: "Review",
     },
   ],
+
   owner: {
     type: Schema.Types.ObjectId,
     ref: "User",
   },
 });
 
+// delete reviews when listing deleted
 listingSchema.post("findOneAndDelete", async (listing) => {
   if (listing) {
     await Review.deleteMany({ _id: { $in: listing.reviews } });
