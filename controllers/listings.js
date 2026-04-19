@@ -3,8 +3,10 @@ const axios = require("axios");
 const { uploadToCloudinary } = require("../cloudConfig.js");
 
 module.exports.index = async (req, res) => {
-  const allListings = await Listing.find({});
-  res.render("listings/index.ejs", { allListings });
+  const { category } = req.query;
+  const filter = category ? { category } : {};
+  const allListings = await Listing.find(filter);
+  res.render("listings/index.ejs", { allListings, activeCategory: category || null });
 };
 
 module.exports.searchListings = async (req, res) => {
@@ -14,7 +16,7 @@ module.exports.searchListings = async (req, res) => {
   const allListings = await Listing.find({
     $or: [{ title: regex }, { location: regex }, { country: regex }],
   });
-  res.render("listings/index.ejs", { allListings, searchQuery: q });
+  res.render("listings/index.ejs", { allListings, searchQuery: q, activeCategory: null });
 };
 
 module.exports.renderNewform = (req, res) => {

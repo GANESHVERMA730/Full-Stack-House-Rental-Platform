@@ -34,10 +34,10 @@ module.exports.login = async (req, res) => {
 
 module.exports.logout = (req, res, next) => {
   req.logout((err) => {
-    if (err) {
-      return next(err);
-    }
-    req.flash("success", "You have been logged out.");
-    res.redirect("/listings");
+    if (err) return next(err);
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.redirect("/listings");
+    });
   });
 };
