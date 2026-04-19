@@ -2,9 +2,9 @@ if (process.env.NODE_ENV != "production") {
   require('dotenv').config();
 }
 
-const express = require("express"); //Import Express
-const app = express(); //Create app
-const mongoose = require("mongoose"); //Import Mongoose
+const express = require("express");
+const app = express();
+const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
@@ -20,15 +20,14 @@ const listingsRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
-// const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust"; //MongoDB URL define
 const dburl = process.env.ATLASDB_URL;
 
 // DB CONNECT
 async function main() {
   await mongoose.connect(dburl);
-  console.log("connect to DB");
+  console.log("Connected to DB");
 }
-main().catch(err => console.log(err))
+main().catch(err => console.log(err));
 
 // VIEW SETUP
 app.set("view engine", "ejs");
@@ -48,7 +47,7 @@ const store = MongoStore.create({
   touchAfter: 24 * 3600,
 });
 
-store.on("error", () => {
+store.on("error", (err) => {
   console.log("ERROR in MONGO SESSION STORE", err);
 });
 
@@ -61,13 +60,9 @@ const sessionOptions = {
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
   },
 };
-
-// Route create
-// app.get("/", (req, res) => {
-//   res.send("Hi, I am root");
-// });
 
 app.use(session(sessionOptions));
 app.use(flash());
@@ -75,7 +70,6 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
-// use static serialize and deserialize of model for passport session support
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
@@ -87,48 +81,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.get("/demouser", async (req, res) => {
-//   let fakeUser = new User({
-//     email: "student@gmail.com",
-//     username: "bibek-verma",
-//   });
-
-//   let registeredUser = await User.register(fakeUser, "helloworld");
-//   res.send(registeredUser);
-// });
-
 app.use("/listings", listingsRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
-
-// app.get("/testListing", async (req, res) => {
-//   let sampleListing = new Listing({
-//     title: "My farm house",
-//     description: "river view point",
-//     price: 1200,
-//     location: "kathmandu, Nepal",
-//     country: "Nepal",
-//   });
-
-//   await sampleListing.save();
-//   console.log("sample was saved");
-//   res.send("successful testing");
-// });
-
 app.use((req, res, next) => {
-  next(new ExpressError(404, "page not found!"));
+  next(new ExpressError(404, "Page not found."));
 });
 
-// Error handling:
+// Error handling
 app.use((err, req, res, next) => {
-  let { statusCode = 500, message = "Error aa gya vosadi!!" } = err;
-  res.render("error.ejs", { message });
-  // res.status(statusCode).send(message);
+  let { statusCode = 500, message = "Something went wrong." } = err;
+  res.status(statusCode).render("error.ejs", { message });
 });
-
 
 // Server start
 app.listen(8080, () => {
-  console.log("server is listening to port 8080");
+  console.log("Server is listening on port 8080");
 });
