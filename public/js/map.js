@@ -13,6 +13,11 @@
     return;
   }
 
+  if (typeof L === "undefined") {
+    mapDiv.innerHTML = "<p class='text-muted'>Map could not be loaded.</p>";
+    return;
+  }
+
   if (!coords || coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) {
     mapDiv.innerHTML = "<p class='text-muted'>Map not available for this listing.</p>";
     return;
@@ -38,4 +43,8 @@
       { maxWidth: 200 }
     )
     .openPopup();
+
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 100);
 })();

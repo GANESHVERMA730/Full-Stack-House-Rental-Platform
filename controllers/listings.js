@@ -36,22 +36,44 @@ module.exports.showListing = async (req, res) => {
     req.flash("error", "The listing you requested does not exist.");
     return res.redirect("/listings");
   }
+  try {
+    await ensureListingGeometry(listing);
+  } catch (err) {
+    console.error("Geocoding failed for listing:", listing._id, err.message);
+  }
   res.render("listings/show.ejs", { listing });
 };
 
-const geocode = async (location) => {
+const geocode = async (location, country) => {
+  const query = country ? `${location}, ${country}` : location;
   const response = await axios.get("https://nominatim.openstreetmap.org/search", {
-    params: { q: location, format: "json", limit: 1 },
+    params: { q: query, format: "json", limit: 1 },
     headers: { "User-Agent": "wanderlust-app (contact@wanderlust.com)" },
   });
   return response.data[0] || null;
+};
+
+const ensureListingGeometry = async (listing) => {
+  const coords = listing.geometry?.coordinates;
+  if (coords && coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+    return listing;
+  }
+  const geoData = await geocode(listing.location, listing.country);
+  if (!geoData) return listing;
+  listing.geometry = {
+    type: "Point",
+    coordinates: [parseFloat(geoData.lon), parseFloat(geoData.lat)],
+  };
+  await listing.save();
+  return listing;
 };
 
 module.exports.createListings = async (req, res) => {
   try {
     const { location } = req.body.listing;
 
-    const geoData = await geocode(location);
+    const { country } = req.body.listing;
+    const geoData = await geocode(location, country);
     if (!geoData) {
       req.flash("error", "Location not found. Please enter a valid location.");
       return res.redirect("/listings/new");
@@ -91,9 +113,9 @@ module.exports.renderEditForm = async (req, res) => {
 module.exports.updateListing = async (req, res) => {
   try {
     let { id } = req.params;
-    const { location } = req.body.listing;
+    const { location, country } = req.body.listing;
 
-    const geoData = await geocode(location);
+    const geoData = await geocode(location, country);
     if (!geoData) {
       req.flash("error", "Location not found. Please enter a valid location.");
       return res.redirect(`/listings/${id}/edit`);
