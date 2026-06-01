@@ -1,6 +1,30 @@
+# Full Stack House Rental Platform
 
-# Airbnb-Project
-A full stack Airbnb clone built with MERN stack.
+A full-stack property rental and booking platform inspired by Airbnb.
 
-# Airbnb-Project-Updated
+## Features
 
+- User Authentication
+- Property Listings
+- Image Upload
+- Reviews & Ratings
+- Interactive Maps
+- MongoDB Database
+- Responsive Design
+
+## Tech Stack
+
+- Node.js
+- Express.js
+- MongoDB Atlas
+- EJS
+- Bootstrap
+- Cloudinary
+
+## Installation
+
+npm install
+
+## Run
+
+nodemon app.js

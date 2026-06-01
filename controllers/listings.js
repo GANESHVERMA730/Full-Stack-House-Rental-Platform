@@ -6,7 +6,11 @@ module.exports.index = async (req, res) => {
   const { category } = req.query;
   const filter = category ? { category } : {};
   const allListings = await Listing.find(filter);
-  res.render("listings/index.ejs", { allListings, activeCategory: category || null });
+  res.render("listings/index.ejs", {
+    allListings,
+    activeCategory: category || null,
+    searchQuery: null,
+  });
 };
 
 module.exports.searchListings = async (req, res) => {

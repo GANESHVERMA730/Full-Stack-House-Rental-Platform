@@ -26,7 +26,7 @@
   }).addTo(map);
 
   var customIcon = L.divIcon({
-    html: '<div style="background:#fe424d;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
+    html: '<div style="background:#ff385c;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
     className: "",
     iconAnchor: [7, 7],
   });
